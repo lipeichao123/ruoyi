@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('医生信息列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>姓名：</label>
+                                <input type="text" name="doctorName"/>
+                            </li>
+                            <li>
+                                <label>年龄：</label>
+                                <input type="text" name="doctorAge"/>
+                            </li>
+                            <li>
+                                <label>性别：</label>
+                               <!-- <select name="sex">
+                                    <option value="">所有</option>
+                                    <option value="-1">代码生成请选择字典属性</option>
+                                </select>-->
+
+
+                                <select name="sex" th:with="type=${@dict.getType('sys_user_sex')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}">
+                                    </option>
+                                </select>
+                            </li>
+                           <!-- <li>
+                                <label>身份证：</label>
+                                <input type="text" name="certId"/>
+                            </li>-->
+                            <li>
+                                <label>部门：</label>
+                                <input type="text" name="department"/>
+                            </li>
+                            <!--<li>
+                                <label>家庭住址：</label>
+                                <input type="text" name="address"/>
+                            </li>-->
+                            <!--<li>
+                                <label>介绍：</label>
+                                <input type="text" name="text"/>
+                            </li>-->
+                            <li>
+                                <label>是否为专家：</label>
+                                <!--<input type="text" name="expert"/>-->
+                                <select name="expert" th:with="type=${@dict.getType('expert')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}">
+                                    </option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>是否注册：</label>
+                               <!-- <input type="text" name="register"/>-->
+
+                                <select name="register" th:with="type=${@dict.getType('register')}" class="col-sm-8">
+                                    <option value="" >所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" >
+                                    </option>
+                                </select>
+
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-success" onclick="$.operate.add()" shiro:hasPermission="test:doctor:add">
+                    <i class="fa fa-plus"></i> 添加
+                </a>
+                <a class="btn btn-primary single disabled" onclick="$.operate.edit()" shiro:hasPermission="test:doctor:edit">
+                    <i class="fa fa-edit"></i> 修改
+                </a>
+                <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="test:doctor:remove">
+                    <i class="fa fa-remove"></i> 删除
+                </a>
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="test:doctor:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+
+        // 获取数据字典数据
+        var datas = [[${@dict.getType('sys_user_sex')}]];
+        var datass = [[${@dict.getType('expert')}]];
+        var zhuce = [[${@dict.getType('register')}]];
+        var editFlag = [[${@permission.hasPermi('test:doctor:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('test:doctor:remove')}]];
+        var prefix = ctx + "test/doctor";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "医生信息",
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field: 'userId',
+                    title: '医生Id',
+                    visible: false
+                },
+                {
+                    field: 'doctorName',
+                    title: '姓名'
+                },
+                {
+                    field: 'doctorAge',
+                    title: '年龄'
+                },
+                {
+                    field: 'sex',
+                    title: '性别',
+                    // 格式化数据字典
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(datas, value);
+                    }
+                },
+                {
+                    field: 'certId',
+                    title: '身份证'
+                },
+                {
+                    field: 'department',
+                    title: '部门'
+                },
+                {
+                    field: 'address',
+                    title: '家庭住址'
+                },
+                {
+                    field: 'text',
+                    title: '介绍'
+                },
+                {
+                    field: 'expert',
+                    title: '是否为专家',
+                    // 格式化数据字典
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(datass, value);
+                    }
+                },
+                {
+                    field: 'register',
+                    title: '是否注册',
+                    // 格式化数据字典
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(zhuce, value);
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="$.operate.edit(\'' + row.userId + '\')"><i class="fa fa-edit"></i>编辑</a> ');
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="$.operate.remove(\'' + row.userId + '\')"><i class="fa fa-remove"></i>删除</a>');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>
